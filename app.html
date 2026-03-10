@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltQuote — App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --yellow: #F5C500;
+      --ydim: rgba(245,197,0,0.1);
+      --black: #080A0C;
+      --dark: #0E1014;
+      --card: #13161B;
+      --border: rgba(255,255,255,0.07);
+      --text: #E2E2E2;
+      --muted: #555;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--text); min-height: 100vh; }
+
+    /* ── LAYOUT ── */
+    .shell { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--dark);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 0;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 50;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 22px 20px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+    }
+
+    .sidebar-logo-icon {
+      width: 30px; height: 30px; background: var(--yellow);
+      border-radius: 6px; display: flex; align-items: center;
+      justify-content: center; font-size: 16px; color: #000; flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px; letter-spacing: 2px; color: #fff;
+    }
+
+    .sidebar-nav { flex: 1; padding: 16px 10px; display: flex; flex-direction: column; gap: 4px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px; border-radius: 8px;
+      font-size: 14px; font-weight: 500; color: var(--muted);
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .nav-item.active { background: var(--ydim); color: var(--yellow); }
+    .nav-item-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-user {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .user-name { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .user-plan { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 220px; flex: 1; padding: 36px 40px; min-height: 100vh; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px; letter-spacing: 2px; color: #fff;
+    }
+
+    .page-sub { font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+    /* ── AUTH SCREEN ── */
+    .auth-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      background: var(--black);
+      background-image: radial-gradient(ellipse 600px 400px at 50% 40%, rgba(245,197,0,0.05) 0%, transparent 70%);
+    }
+
+    .auth-card {
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 44px 40px;
+      width: 100%; max-width: 420px;
+    }
+
+    .auth-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
+    }
+
+    .auth-logo-icon {
+      width: 36px; height: 36px; background: var(--yellow);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; color: #000;
+    }
+
+    .auth-logo-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px; letter-spacing: 2px;
+    }
+
+    .auth-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px; letter-spacing: 1.5px; margin-bottom: 6px; line-height: 1;
+    }
+
+    .auth-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+    .auth-tabs {
+      display: flex; gap: 0;
+      background: var(--card);
+      border-radius: 8px; padding: 4px; margin-bottom: 28px;
+    }
+
+    .auth-tab {
+      flex: 1; padding: 9px; border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; background: none;
+      color: var(--muted); transition: all 0.2s;
+    }
+
+    .auth-tab.active { background: var(--yellow); color: #000; }
+
+    .form-group { margin-bottom: 16px; }
+
+    label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+    input[type=text], input[type=email], input[type=password], select, textarea {
+      width: 100%; background: var(--card); border: 1px solid #222;
+      border-radius: 8px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      padding: 12px 14px; outline: none; transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus { border-color: var(--yellow); }
+    input::placeholder, textarea::placeholder { color: #2a2d33; }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+    select option { background: var(--card); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; padding: 13px 24px; }
+    .btn-yellow { background: var(--yellow); color: #000; }
+    .btn-yellow:hover:not(:disabled) { background: #ffd700; transform: translateY(-1px); box-shadow: 0 8px 30px rgba(245,197,0,0.25); }
+    .btn-yellow:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    /* ── QUOTE FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .full { grid-column: 1 / -1; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--yellow);
+      margin-bottom: 16px; margin-top: 28px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .section-label:first-child { margin-top: 0; }
+
+    .section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(245,197,0,0.15);
+    }
+
+    /* ── QUOTE OUTPUT ── */
+    .quote-card {
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--yellow);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 32px;
+      animation: fadeUp 0.4s ease;
+    }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .quote-head {
+      padding: 24px 28px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+
+    .quote-company-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px; letter-spacing: 2px;
+    }
+
+    .quote-num { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--yellow); }
+    .quote-date { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    .quote-body { padding: 28px; }
+
+    .scope-box {
+      background: var(--card); border-radius: 8px;
+      padding: 14px 18px; font-size: 14px;
+      line-height: 1.7; color: #aaa; margin-bottom: 4px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #444; padding: 10px 12px; background: var(--card); border-bottom: 1px solid #1e2126; }
+    th:last-child { text-align: right; }
+    td { padding: 12px 12px; font-size: 14px; border-bottom: 1px solid #1a1d22; vertical-align: top; }
+    td:last-child { text-align: right; font-weight: 500; }
+    tr:last-child td { border-bottom: none; }
+
+    .item-name { font-weight: 500; color: #e0e0e0; }
+    .item-desc { font-size: 12px; color: #444; margin-top: 3px; }
+
+    .totals {
+      background: var(--card); border-radius: 8px;
+      padding: 16px 20px; display: flex;
+      flex-direction: column; gap: 10px;
+    }
+
+    .total-row { display: flex; justify-content: space-between; font-size: 14px; color: #666; }
+    .total-grand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px; color: var(--yellow);
+      padding-top: 10px; border-top: 1px solid #2a2d33; letter-spacing: 1px;
+    }
+
+    .notes-box {
+      background: var(--card);
+      border-left: 3px solid rgba(245,197,0,0.3);
+      padding: 14px 18px; font-size: 14px;
+      line-height: 1.7; color: #666; border-radius: 0 8px 8px 0;
+    }
+
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+    }
+
+    .detail-box {
+      background: var(--card); padding: 14px 18px; border-radius: 8px;
+    }
+
+    .detail-box-label { font-size: 11px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .detail-box-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
+
+    /* ── ACTIONS ROW ── */
+    .actions-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+    /* ── EMAIL MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 20px; backdrop-filter: blur(4px);
+    }
+
+    .modal {
+      background: var(--dark); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px; width: 100%; max-width: 460px;
+    }
+
+    .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; margin-bottom: 8px; }
+    .modal p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+    /* ── HISTORY ── */
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .history-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: all 0.15s;
+    }
+
+    .history-item:hover { border-color: rgba(245,197,0,0.2); background: #15181f; }
+
+    .history-job { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .history-meta { font-size: 12px; color: var(--muted); }
+    .history-amount { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; color: var(--yellow); }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center; padding: 80px 20px;
+      border: 1px dashed #222; border-radius: 12px;
+    }
+
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; margin-bottom: 8px; }
+    .empty-sub { font-size: 14px; color: var(--muted); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--card); border: 1px solid var(--border);
+      border-left: 3px solid var(--yellow);
+      border-radius: 10px; padding: 14px 20px;
+      font-size: 14px; z-index: 300;
+      animation: slideIn 0.3s ease;
+      max-width: 320px;
+    }
+
+    @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ── SPINNER ── */
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── LOADING OVERLAY ── */
+    .loading-overlay {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 60px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 16px; margin-top: 32px;
+    }
+
+    .loading-spinner { width: 36px; height: 36px; border: 3px solid rgba(245,197,0,0.2); border-top-color: var(--yellow); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .loading-text { font-size: 14px; color: var(--muted); letter-spacing: 1px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 20px 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG — Replace these with your real keys
+// ─────────────────────────────────────────────
+const ANTHROPIC_API_KEY  = 'YOUR_ANTHROPIC_API_KEY';  // Add in Vercel env vars
+const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID'; // Get from emailjs.com
+const EMAILJS_TEMPLATE   = 'YOUR_EMAILJS_TEMPLATE_ID';
+const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
+
+// ─────────────────────────────────────────────
+// SIMPLE IN-MEMORY "AUTH" (replace with Supabase)
+// ─────────────────────────────────────────────
+const DEMO_USER = { name: 'Demo User', email: 'demo@voltquote.io', company: 'My Electric LLC', plan: 'PRO TRIAL' };
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let state = {
+  page: 'auth',       // auth | quote | history | settings
+  authMode: 'login',  // login | signup
+  user: null,
+  form: { company: '', client: '', jobType: '', location: '', sqft: '', amps: '', description: '' },
+  loading: false,
+  quote: null,
+  savedQuotes: JSON.parse(localStorage.getItem('vq_quotes') || '[]'),
+  toast: null,
+  showEmailModal: false,
+  emailTo: '',
+  emailSending: false,
+};
+
+const JOB_TYPES = [
+  'Panel Upgrade / Service Change','New Home Wiring','Commercial Buildout',
+  'EV Charger Installation','Generator Install / Transfer Switch',
+  'Kitchen / Bathroom Remodel','Lighting Installation',
+  'Outlet / Switch Add or Replace','Ceiling Fan Installation',
+  'Smoke / CO Detector Install','Smart Home / Automation Wiring',
+  'Troubleshooting / Repair','Other'
+];
+
+// ─────────────────────────────────────────────
+// RENDER ENGINE
+// ─────────────────────────────────────────────
+function render() {
+  const root = document.getElementById('root');
+  if (state.page === 'auth') {
+    root.innerHTML = renderAuth();
+  } else {
+    root.innerHTML = renderApp();
+  }
+  attachEvents();
+  if (state.toast) {
+    setTimeout(() => {
+      state.toast = null;
+      const t = document.getElementById('toast');
+      if (t) t.remove();
+    }, 3000);
+  }
+}
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+function renderAuth() {
+  return `
+  <div class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">⚡</div>
+        <span class="auth-logo-text">VoltQuote</span>
+      </div>
+      <div class="auth-title">${state.authMode === 'login' ? 'WELCOME BACK' : 'GET STARTED'}</div>
+      <div class="auth-sub">${state.authMode === 'login' ? 'Log in to your account' : 'Create your free account — no card needed'}</div>
+      <div class="auth-tabs">
+        <button class="auth-tab ${state.authMode==='login'?'active':''}" data-auth="login">Log In</button>
+        <button class="auth-tab ${state.authMode==='signup'?'active':''}" data-auth="signup">Sign Up</button>
+      </div>
+      ${state.authMode === 'signup' ? `
+      <div class="form-group">
+        <label>Company Name</label>
+        <input type="text" id="auth-company" placeholder="Smith Electric LLC" />
+      </div>` : ''}
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="you@example.com" value="${state.authMode==='login'?'demo@voltquote.io':''}" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="auth-pass" placeholder="••••••••" value="${state.authMode==='login'?'demo123':''}" />
+      </div>
+      <button class="btn btn-yellow btn-full" id="auth-submit" style="margin-top:8px;">
+        ${state.authMode === 'login' ? 'Log In →' : 'Create Account →'}
+      </button>
+      <div style="text-align:center; margin-top:20px; font-size:13px; color:var(--muted)">
+        ${state.authMode==='login'?'No account? <a href="#" data-auth="signup" style="color:var(--yellow);text-decoration:none;">Sign up free</a>':'Already have an account? <a href="#" data-auth="login" style="color:var(--yellow);text-decoration:none;">Log in</a>'}
+      </div>
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border); text-align:center;">
+        <button class="btn btn-outline btn-full" id="demo-login" style="font-size:13px;">⚡ Try Demo — No Signup Needed</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// APP SHELL
+// ─────────────────────────────────────────────
+function renderApp() {
+  return `
+  <div class="shell">
+    <div class="sidebar">
+      <a href="index.html" class="sidebar-logo">
+        <div class="sidebar-logo-icon">⚡</div>
+        <span class="sidebar-logo-text">VoltQuote</span>
+      </a>
+      <nav class="sidebar-nav">
+        <button class="nav-item ${state.page==='quote'?'active':''}" data-page="quote">
+          <span class="nav-item-icon">⚡</span> New Quote
+        </button>
+        <button class="nav-item ${state.page==='history'?'active':''}" data-page="history">
+          <span class="nav-item-icon">📁</span> Saved Quotes
+          ${state.savedQuotes.length ? `<span style="margin-left:auto;background:var(--ydim);color:var(--yellow);font-size:11px;padding:2px 7px;border-radius:100px;">${state.savedQuotes.length}</span>` : ''}
+        </button>
+        <button class="nav-item ${state.page==='settings'?'active':''}" data-page="settings">
+          <span class="nav-item-icon">⚙️</span> Settings
+        </button>
+      </nav>
+      <div class="sidebar-user">
+        <div class="user-name">${state.user?.company || 'My Company'}</div>
+        <div class="user-plan">${state.user?.plan || 'FREE'}</div>
+      </div>
+    </div>
+    <div class="main">
+      ${state.page==='quote' ? renderQuotePage() : ''}
+      ${state.page==='history' ? renderHistoryPage() : ''}
+      ${state.page==='settings' ? renderSettingsPage() : ''}
+    </div>
+  </div>
+  ${state.showEmailModal ? renderEmailModal() : ''}
+  ${state.toast ? `<div class="toast" id="toast">${state.toast}</div>` : ''}`;
+}
+
+// ─────────────────────────────────────────────
+// QUOTE PAGE
+// ─────────────────────────────────────────────
+function renderQuotePage() {
+  const f = state.form;
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">NEW QUOTE</div>
+      <div class="page-sub">Describe the job — AI does the rest</div>
+    </div>
+  </div>
+
+  <div class="section-label">Job Details</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Your Company Name</label>
+      <input type="text" data-field="company" value="${f.company}" placeholder="Smith Electric LLC" />
+    </div>
+    <div class="form-group">
+      <label>Client Name</label>
+      <input type="text" data-field="client" value="${f.client}" placeholder="John & Sarah Miller" />
+    </div>
+    <div class="form-group">
+      <label>Job Type *</label>
+      <select data-field="jobType">
+        <option value="">Select job type...</option>
+        ${JOB_TYPES.map(t => `<option ${f.jobType===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Location / City</label>
+      <input type="text" data-field="location" value="${f.location}" placeholder="Detroit, MI" />
+    </div>
+    <div class="form-group">
+      <label>Square Footage</label>
+      <input type="number" data-field="sqft" value="${f.sqft}" placeholder="2400" />
+    </div>
+    <div class="form-group">
+      <label>Existing Panel (Amps)</label>
+      <input type="number" data-field="amps" value="${f.amps}" placeholder="100 or 200" />
+    </div>
+    <div class="form-group full">
+      <label>Job Description *</label>
+      <textarea data-field="description" placeholder="Describe the job in detail. e.g. Customer needs 200A panel upgrade from 100A. House built 1978 in Detroit MI. Wants to add EV charger circuit in garage at same time. Need to pull permit.">${f.description}</textarea>
+    </div>
+  </div>
+
+  <button class="btn btn-yellow btn-full" id="gen-btn" ${state.loading?'disabled':''}>
+    ${state.loading ? '<div class="spinner"></div> Generating...' : '⚡ Generate AI Quote'}
+  </button>
+
+  ${state.loading ? `
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Analyzing job scope & pricing...</div>
+  </div>` : ''}
+
+  ${state.quote && !state.loading ? renderQuoteOutput() : ''}`;
+}
+
+function renderQuoteOutput() {
+  const q = state.quote;
+  const f = state.form;
+  const quoteNum = 'VQ-' + Math.floor(Math.random()*9000+1000);
+  const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  return `
+  <div class="quote-card" id="quote-output">
+    <div class="quote-head">
+      <div>
+        <div class="quote-company-name">${f.company || 'Your Company'}</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:3px;">${f.client ? 'Prepared for: '+f.client : 'Electrical Services Quote'}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="quote-num">${quoteNum}</div>
+        <div class="quote-date">${today}</div>
+        <div style="font-size:12px;color:#444;margin-top:4px;">Valid ${q.validDays} days</div>
+      </div>
+    </div>
+    <div class="quote-body">
+      <div class="section-label">Scope of Work</div>
+      <div class="scope-box">${q.scopeOfWork}</div>
+
+      <div class="section-label">Line Items</div>
+      <table>
+        <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+        <tbody>
+          ${q.lineItems.map(item => `
+          <tr>
+            <td><div class="item-name">${item.name}</div><div class="item-desc">${item.description}</div></td>
+            <td style="color:var(--muted)">${item.qty} ${item.unit}</td>
+            <td style="color:var(--muted)">$${item.unitPrice.toFixed(2)}</td>
+            <td>$${item.total.toFixed(2)}</td>
+          </tr>`).join('')}
+          <tr>
+            <td><div class="item-name">Labor</div><div class="item-desc">${q.laborHours} hrs @ $${q.laborRate}/hr</div></td>
+            <td style="color:var(--muted)">${q.laborHours} hrs</td>
+            <td style="color:var(--muted)">$${q.laborRate.toFixed(2)}</td>
+            <td>$${q.laborTotal.toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-label">Total</div>
+      <div class="totals">
+        <div class="total-row"><span>Materials</span><span>$${q.materialTotal.toFixed(2)}</span></div>
+        <div class="total-row"><span>Labor (${q.laborHours} hrs)</span><span>$${q.laborTotal.toFixed(2)}</span></div>
+        <div class="total-row"><span>Subtotal</span><span>$${q.subtotal.toFixed(2)}</span></div>
+        <div class="total-row"><span>Tax</span><span>$${q.tax.toFixed(2)}</span></div>
+        <div class="total-row total-grand"><span>TOTAL</span><span>$${q.grandTotal.toFixed(2)}</span></div>
+      </div>
+
+      <div class="section-label">Project Details</div>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <div class="detail-box-label">Est. Duration</div>
+          <div class="detail-box-val">${q.estimatedDuration}</div>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label">Warranty</div>
+          <div class="detail-box-val" style="font-size:15px;margin-top:4px;font-family:'DM Sans',sans-serif;font-weight:600;">${q.warrantyCoverage}</div>
+        </div>
+      </div>
+
+      <div class="section-label">Notes & Conditions</div>
+      <div class="notes-box">${q.notes}</div>
+    </div>
+  </div>
+  <div class="actions-row">
+    <button class="btn btn-yellow btn-sm" id="save-btn">💾 Save Quote</button>
+    <button class="btn btn-outline btn-sm" id="email-btn">📧 Email to Customer</button>
+    <button class="btn btn-outline btn-sm" id="regen-btn">↻ Regenerate</button>
+    <button class="btn btn-outline btn-sm" id="new-btn">+ New Quote</button>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// HISTORY PAGE
+// ─────────────────────────────────────────────
+function renderHistoryPage() {
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">SAVED QUOTES</div>
+      <div class="page-sub">${state.savedQuotes.length} quote${state.savedQuotes.length!==1?'s':''} saved</div>
+    </div>
+    <button class="btn btn-yellow btn-sm" data-page="quote">+ New Quote</button>
+  </div>
+  ${state.savedQuotes.length === 0 ? `
+  <div class="empty">
+    <div class="empty-icon">📋</div>
+    <div class="empty-title">NO QUOTES YET</div>
+    <div class="empty-sub">Generate a quote and hit Save to see it here</div>
+  </div>` : `
+  <div class="history-list">
+    ${[...state.savedQuotes].reverse().map((q,i) => `
+    <div class="history-item">
+      <div>
+        <div class="history-job">${q.jobType || 'Electrical Job'} ${q.client ? '— '+q.client : ''}</div>
+        <div class="history-meta">${q.location || ''} · ${q.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="history-amount">$${q.grandTotal.toFixed(0)}</div>
+        <button class="btn btn-outline btn-sm" data-delete="${state.savedQuotes.length-1-i}">🗑</button>
+      </div>
+    </div>`).join('')}
+  </div>`}`;
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS PAGE
+// ─────────────────────────────────────────────
+function renderSettingsPage() {
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">SETTINGS</div>
+      <div class="page-sub">Manage your account and preferences</div>
+    </div>
+  </div>
+  <div style="max-width:500px;display:flex;flex-direction:column;gap:20px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;">
+      <div class="section-label">Company Info</div>
+      <div class="form-group">
+        <label>Company Name</label>
+        <input type="text" id="set-company" value="${state.user?.company||''}" placeholder="Your Electric LLC" />
+      </div>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="set-name" value="${state.user?.name||''}" placeholder="Your name" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="set-email" value="${state.user?.email||''}" placeholder="you@example.com" />
+      </div>
+      <button class="btn btn-yellow btn-sm" id="save-settings">Save Changes</button>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;">
+      <div class="section-label">Account</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+          <div style="font-size:14px;font-weight:600;">Current Plan</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">${state.user?.plan||'Free'}</div>
+        </div>
+        <button class="btn btn-yellow btn-sm">Upgrade to Pro</button>
+      </div>
+      <button class="btn btn-outline btn-sm" id="logout-btn" style="color:#ff6060;border-color:rgba(255,96,96,0.2);">Log Out</button>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// EMAIL MODAL
+// ─────────────────────────────────────────────
+function renderEmailModal() {
+  return `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3>📧 SEND QUOTE</h3>
+      <p>Enter the customer's email address and we'll send them the quote.</p>
+      <div class="form-group">
+        <label>Customer Email</label>
+        <input type="email" id="email-to" value="${state.emailTo}" placeholder="customer@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Your Name / Company</label>
+        <input type="text" id="email-from" value="${state.user?.company||''}" placeholder="Smith Electric LLC" />
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button class="btn btn-yellow" id="send-email-btn" style="flex:1" ${state.emailSending?'disabled':''}>
+          ${state.emailSending ? '<div class="spinner"></div> Sending...' : '📨 Send Quote'}
+        </button>
+        <button class="btn btn-outline" id="close-modal">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// EVENTS
+// ─────────────────────────────────────────────
+function attachEvents() {
+  // Auth tabs
+  document.querySelectorAll('[data-auth]').forEach(el => {
+    el.addEventListener('click', () => { state.authMode = el.dataset.auth; render(); });
+  });
+
+  // Demo login
+  const demo = document.getElementById('demo-login');
+  if (demo) demo.addEventListener('click', () => login(true));
+
+  // Auth submit
+  const authBtn = document.getElementById('auth-submit');
+  if (authBtn) authBtn.addEventListener('click', () => login(false));
+
+  // Sidebar nav
+  document.querySelectorAll('[data-page]').forEach(el => {
+    el.addEventListener('click', () => { state.page = el.dataset.page; state.quote = null; render(); });
+  });
+
+  // Form fields
+  document.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('input', () => { state.form[el.dataset.field] = el.value; });
+  });
+
+  // Generate button
+  const genBtn = document.getElementById('gen-btn');
+  if (genBtn) genBtn.addEventListener('click', generateQuote);
+
+  // Save
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) saveBtn.addEventListener('click', saveQuote);
+
+  // Email modal open
+  const emailBtn = document.getElementById('email-btn');
+  if (emailBtn) emailBtn.addEventListener('click', () => { state.showEmailModal = true; render(); });
+
+  // Close modal
+  const closeModal = document.getElementById('close-modal');
+  if (closeModal) closeModal.addEventListener('click', () => { state.showEmailModal = false; render(); });
+
+  const modalOverlay = document.getElementById('modal-overlay');
+  if (modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target===modalOverlay){ state.showEmailModal=false; render(); }});
+
+  // Send email
+  const sendBtn = document.getElementById('send-email-btn');
+  if (sendBtn) sendBtn.addEventListener('click', sendEmail);
+
+  // Regen
+  const regenBtn = document.getElementById('regen-btn');
+  if (regenBtn) regenBtn.addEventListener('click', generateQuote);
+
+  // New
+  const newBtn = document.getElementById('new-btn');
+  if (newBtn) newBtn.addEventListener('click', () => { state.quote=null; state.form={company:'',client:'',jobType:'',location:'',sqft:'',amps:'',description:''}; render(); });
+
+  // Delete saved
+  document.querySelectorAll('[data-delete]').forEach(el => {
+    el.addEventListener('click', (e) => { e.stopPropagation(); const idx=parseInt(el.dataset.delete); state.savedQuotes.splice(idx,1); localStorage.setItem('vq_quotes',JSON.stringify(state.savedQuotes)); showToast('Quote deleted'); render(); });
+  });
+
+  // Logout
+  const logout = document.getElementById('logout-btn');
+  if (logout) logout.addEventListener('click', () => { state.user=null; state.page='auth'; state.quote=null; render(); });
+
+  // Save settings
+  const saveSettings = document.getElementById('save-settings');
+  if (saveSettings) saveSettings.addEventListener('click', () => {
+    state.user.company = document.getElementById('set-company').value;
+    state.user.name = document.getElementById('set-name').value;
+    state.user.email = document.getElementById('set-email').value;
+    showToast('✓ Settings saved');
+    render();
+  });
+}
+
+// ─────────────────────────────────────────────
+// ACTIONS
+// ─────────────────────────────────────────────
+function login(demo) {
+  if (demo) {
+    state.user = { ...DEMO_USER };
+    state.form.company = DEMO_USER.company;
+  } else {
+    const email = document.getElementById('auth-email')?.value;
+    const company = document.getElementById('auth-company')?.value;
+    state.user = { name: 'User', email: email||'user@example.com', company: company||'My Electric LLC', plan: 'FREE' };
+    state.form.company = state.user.company;
+  }
+  state.page = 'quote';
+  render();
+}
+
+async function generateQuote() {
+  const f = state.form;
+  if (!f.jobType || !f.description) {
+    showToast('⚠ Please fill in Job Type and Description');
+    return;
+  }
+  state.loading = true;
+  state.quote = null;
+  render();
+
+  const prompt = `You are an expert electrical contractor estimator with 20+ years of experience. Generate a realistic electrical job quote.
+
+Job Type: ${f.jobType}
+Location: ${f.location || 'Not specified'}
+${f.sqft ? `Square Footage: ${f.sqft} sq ft` : ''}
+${f.amps ? `Existing Panel: ${f.amps}A` : ''}
+Job Description: ${f.description}
+
+Return ONLY a JSON object — no markdown, no backticks, no preamble:
+{
+  "scopeOfWork": "2-3 sentence summary of exactly what work will be performed",
+  "lineItems": [
+    { "name": "Item name", "description": "Brief detail", "qty": 1, "unit": "ea", "unitPrice": 150, "total": 150 }
+  ],
+  "laborHours": 8,
+  "laborRate": 95,
+  "laborTotal": 760,
+  "materialTotal": 450,
+  "subtotal": 1210,
+  "tax": 36.30,
+  "grandTotal": 1246.30,
+  "validDays": 30,
+  "estimatedDuration": "1 day",
+  "notes": "2-3 important notes about the job, permits needed, or conditions",
+  "warrantyCoverage": "1 year parts and labor"
+}
+
+Use realistic 2025–2026 pricing. Include 3–8 line items.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(b => b.text||'').join('') || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    state.quote = JSON.parse(clean);
+  } catch(e) {
+    showToast('⚠ Error generating quote. Please try again.');
+  }
+  state.loading = false;
+  render();
+}
+
+function saveQuote() {
+  if (!state.quote) return;
+  const entry = {
+    ...state.quote,
+    jobType: state.form.jobType,
+    client: state.form.client,
+    location: state.form.location,
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  };
+  state.savedQuotes.push(entry);
+  localStorage.setItem('vq_quotes', JSON.stringify(state.savedQuotes));
+  showToast('✓ Quote saved!');
+  render();
+}
+
+async function sendEmail() {
+  const to = document.getElementById('email-to')?.value;
+  const fromName = document.getElementById('email-from')?.value;
+  if (!to) { showToast('⚠ Enter a customer email'); return; }
+  if (!state.quote) return;
+
+  state.emailSending = true;
+  render();
+
+  const q = state.quote;
+  const f = state.form;
+  const body = `Hi ${f.client || 'there'},
+
+Thank you for the opportunity. Here is your quote:
+
+JOB: ${f.jobType}
+${f.location ? 'LOCATION: '+f.location : ''}
+
+SCOPE: ${q.scopeOfWork}
+
+LINE ITEMS:
+${q.lineItems.map(i => `  ${i.name}: $${i.total.toFixed(2)}`).join('\n')}
+  Labor (${q.laborHours} hrs): $${q.laborTotal.toFixed(2)}
+
+Materials: $${q.materialTotal.toFixed(2)}
+Labor: $${q.laborTotal.toFixed(2)}
+Subtotal: $${q.subtotal.toFixed(2)}
+Tax: $${q.tax.toFixed(2)}
+TOTAL: $${q.grandTotal.toFixed(2)}
+
+Duration: ${q.estimatedDuration}
+Valid for: ${q.validDays} days
+Warranty: ${q.warrantyCoverage}
+
+Notes: ${q.notes}
+
+Please let me know if you have any questions.
+
+${fromName || f.company || 'Your Electrician'}`;
+
+  try {
+    // EmailJS — add your keys at the top of this file
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE, {
+      to_email: to,
+      to_name: f.client || 'Customer',
+      from_name: fromName || f.company || 'Electrician',
+      subject: `Electrical Quote — ${f.jobType} — $${q.grandTotal.toFixed(0)}`,
+      message: body
+    }, EMAILJS_PUBLIC_KEY);
+    state.emailSending = false;
+    state.showEmailModal = false;
+    showToast('✅ Quote emailed successfully!');
+  } catch(e) {
+    state.emailSending = false;
+    showToast('⚠ Email failed. Check your EmailJS setup.');
+  }
+  render();
+}
+
+function showToast(msg) {
+  state.toast = msg;
+  render();
+}
+
+// ── START ──
+render();
+</script>
+</body>
+</html>
