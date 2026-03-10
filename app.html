@@ -874,11 +874,24 @@ Use realistic 2025–2026 pricing. Include 3–8 line items.`;
       })
     });
     const data = await res.json();
+    console.log('API response:', JSON.stringify(data));
+    if (data.error) {
+      showToast('⚠ API Error: ' + data.error.message);
+      state.loading = false;
+      render();
+      return;
+    }
     const text = data.content?.map(b => b.text||'').join('') || '';
     const clean = text.replace(/```json|```/g,'').trim();
-    state.quote = JSON.parse(clean);
+    try {
+      state.quote = JSON.parse(clean);
+    } catch(parseErr) {
+      console.log('Parse error:', parseErr, 'Text was:', text);
+      showToast('⚠ Could not parse quote. Please try again.');
+    }
   } catch(e) {
-    showToast('⚠ Error generating quote. Please try again.');
+    console.log('Fetch error:', e);
+    showToast('⚠ Error: ' + e.message);
   }
   state.loading = false;
   render();
