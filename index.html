@@ -748,6 +748,45 @@
     }
 
     /* ── MOBILE ── */
+
+    .faq-item {
+      background: #0e1115;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 0;
+      overflow: hidden;
+      transition: border-color 0.2s;
+      margin-bottom: 8px;
+    }
+    .faq-item:hover { border-color: rgba(245,197,0,0.15); }
+    .faq-item[open] { border-color: rgba(245,197,0,0.2); }
+    .faq-item summary {
+      padding: 20px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ddd;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: "+";
+      font-size: 22px;
+      color: var(--yellow);
+      font-weight: 300;
+      transition: transform 0.2s;
+    }
+    .faq-item[open] summary::after { content: "−"; }
+    .faq-item p {
+      padding: 0 24px 20px;
+      font-size: 15px;
+      color: #555;
+      line-height: 1.7;
+    }
+
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
       .nav-links { display: none; }
@@ -1036,6 +1075,68 @@
   </div>
 </section>
 
+<!-- FAQ -->
+<section style="padding: 100px 20px; background: #060809;">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <div class="reveal" style="text-align:center; margin-bottom: 60px;">
+      <span class="section-tag">FAQ</span>
+      <h2>COMMON<br/><span style="color:var(--yellow)">QUESTIONS</span></h2>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <details class="faq-item reveal" open>
+        <summary>Do I need to know how to code?</summary>
+        <p>Not at all. VoltQuote is built for electricians, not developers. If you can fill out a form, you can use VoltQuote.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>How accurate are the quotes?</summary>
+        <p>The AI is trained on real electrical job pricing and uses current 2025–2026 material and labor rates. You can always edit any line item before sending.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Can I send quotes directly to customers?</summary>
+        <p>Yes — with one click you can email a professional PDF quote directly to your customer from inside the app.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Can I export to Excel?</summary>
+        <p>Yes. Every quote can be exported to Excel with one click — perfect if you already run your business on spreadsheets.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>What job types does it support?</summary>
+        <p>Panel upgrades, service changes, EV charger installs, rewires, outlet/switch work, lighting, generators, and more. New job types are added regularly.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Is my data secure?</summary>
+        <p>Yes. Your quotes and customer data are private to your account and never shared with anyone.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Can I cancel anytime?</summary>
+        <p>Absolutely. No contracts, no cancellation fees. Cancel in one click from your settings page.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<section style="padding: 60px 20px; background: #0a0c10; border-top: 1px solid rgba(245,197,0,0.1); border-bottom: 1px solid rgba(245,197,0,0.1);">
+  <div style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center;">
+    <div class="reveal">
+      <div style="font-family: Bebas Neue, sans-serif; font-size: 52px; color: var(--yellow); letter-spacing: 2px;">30s</div>
+      <div style="font-size: 13px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">Quote Generation</div>
+    </div>
+    <div class="reveal">
+      <div style="font-family: Bebas Neue, sans-serif; font-size: 52px; color: var(--yellow); letter-spacing: 2px;">$0</div>
+      <div style="font-size: 13px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">To Get Started</div>
+    </div>
+    <div class="reveal">
+      <div style="font-family: Bebas Neue, sans-serif; font-size: 52px; color: var(--yellow); letter-spacing: 2px;">5</div>
+      <div style="font-size: 13px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">Free Quotes/Month</div>
+    </div>
+    <div class="reveal">
+      <div style="font-family: Bebas Neue, sans-serif; font-size: 52px; color: var(--yellow); letter-spacing: 2px;">10+</div>
+      <div style="font-size: 13px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">Job Types Supported</div>
+    </div>
+  </div>
+</section>
+
 <!-- CTA BANNER -->
 <section class="cta-banner">
   <div class="cta-banner-inner reveal">
@@ -1046,16 +1147,36 @@
 </section>
 
 <!-- FOOTER -->
-<footer>
-  <div class="footer-logo">⚡ VOLTQUOTE</div>
-  <div class="footer-links">
-    <a href="#how">How It Works</a>
-    <a href="#features">Features</a>
-    <a href="#pricing">Pricing</a>
-    <a href="app.html">App</a>
-    <a href="#">Privacy</a>
+<footer style="flex-direction: column; padding: 60px 40px 40px; gap: 40px; border-top: 1px solid rgba(255,255,255,0.05);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: 40px;">
+    <div>
+      <div class="footer-logo" style="font-size: 22px; margin-bottom: 12px;">⚡ VOLTQUOTE</div>
+      <div style="font-size: 14px; color: #333; max-width: 260px; line-height: 1.7;">AI-powered quote generation built exclusively for electrical contractors.</div>
+    </div>
+    <div style="display: flex; gap: 80px; flex-wrap: wrap;">
+      <div>
+        <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-bottom: 16px;">Product</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a href="#how" style="font-size: 14px; color: #555; text-decoration: none;">How It Works</a>
+          <a href="#features" style="font-size: 14px; color: #555; text-decoration: none;">Features</a>
+          <a href="#pricing" style="font-size: 14px; color: #555; text-decoration: none;">Pricing</a>
+          <a href="app.html" style="font-size: 14px; color: #555; text-decoration: none;">Get Started</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-bottom: 16px;">Legal</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a href="#" style="font-size: 14px; color: #555; text-decoration: none;">Privacy Policy</a>
+          <a href="#" style="font-size: 14px; color: #555; text-decoration: none;">Terms of Service</a>
+          <a href="#" style="font-size: 14px; color: #555; text-decoration: none;">Contact</a>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="footer-copy">© 2026 VoltQuote. All rights reserved.</div>
+  <div style="width: 100%; max-width: 1100px; margin: 0 auto; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div class="footer-copy">© 2026 VoltQuote. All rights reserved.</div>
+    <div style="font-size: 13px; color: #2a2a2a;">Built for electricians, by someone who gets it.</div>
+  </div>
 </footer>
 
 <script>
