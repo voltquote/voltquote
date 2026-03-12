@@ -1038,14 +1038,15 @@ function exportToExcel() {
     rows.push([item.name, item.description || '', item.qty, item.unit || 'ea', item.unitPrice, item.total]);
   });
   rows.push([]);
-  rows.push(['', '', '', '', 'Materials', q.totals?.materials || '']);
-  rows.push(['', '', '', '', 'Labor', q.totals?.labor || '']);
-  rows.push(['', '', '', '', 'Subtotal', q.totals?.subtotal || '']);
-  rows.push(['', '', '', '', 'Tax', q.totals?.tax || '']);
-  rows.push(['', '', '', '', 'TOTAL', q.totals?.grand || '']);
+  const materialTotal = (q.lineItems||[]).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+  rows.push(['', '', '', '', 'Materials', '$'+materialTotal.toFixed(2)]);
+  rows.push(['', '', '', '', 'Labor ('+q.laborHours+' hrs)', '$'+(q.laborTotal||0).toFixed(2)]);
+  rows.push(['', '', '', '', 'Subtotal', '$'+(q.subtotal||0).toFixed(2)]);
+  rows.push(['', '', '', '', 'Tax', '$'+((q.grandTotal||0)-(q.subtotal||0)).toFixed(2)]);
+  rows.push(['', '', '', '', 'TOTAL', '$'+(q.grandTotal||0).toFixed(2)]);
   rows.push([]);
-  rows.push(['Est. Duration', q.duration || '']);
-  rows.push(['Warranty', q.warranty || '']);
+  rows.push(['Est. Duration', q.estimatedDuration || '']);
+  rows.push(['Warranty', q.warrantyCoverage || '']);
   rows.push(['Notes', q.notes || '']);
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
