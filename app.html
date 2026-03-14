@@ -166,7 +166,7 @@
 
     label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 
-    input[type=text], input[type=email], input[type=password], select, textarea {
+    input[type=text], input[type=email], input[type=password], input[type=number], select, textarea {
       width: 100%; background: #0d1014; border: 1px solid #1e2228;
       border-radius: 10px; color: var(--text);
       font-family: 'DM Sans', sans-serif; font-size: 15px;
@@ -174,7 +174,7 @@
     }
 
     input:focus, select:focus, textarea:focus { border-color: rgba(245,197,0,0.4); background: #0f1318; box-shadow: 0 0 0 3px rgba(245,197,0,0.06); }
-    input::placeholder, textarea::placeholder { color: #252830; }
+    input::placeholder, textarea::placeholder { color: #444; }
     textarea { resize: vertical; min-height: 110px; line-height: 1.7; }
     select option { background: #0d1014; }
 
@@ -605,11 +605,11 @@ function renderQuotePage() {
     </div>
     <div class="form-group">
       <label>Square Footage</label>
-      <input type="number" data-field="sqft" value="${f.sqft}" placeholder="2400" />
+      <input type="text" data-field="sqft" value="${f.sqft}" placeholder="e.g. 2000" />
     </div>
     <div class="form-group">
       <label>Existing Panel (Amps)</label>
-      <input type="number" data-field="amps" value="${f.amps}" placeholder="100 or 200" />
+      <input type="text" data-field="amps" value="${f.amps}" placeholder="100A or 200A" />
     </div>
     <div class="form-group full">
       <label>Job Description *</label>
@@ -988,7 +988,7 @@ Job Type: ${f.jobType}
 Location: ${f.location || 'Not specified'}
 ${f.sqft ? `Square Footage: ${f.sqft} sq ft` : ''}
 ${f.amps ? `Existing Panel: ${f.amps}A` : ''}
-Job Description: ${f.description}
+Job Description: ${f.description.replace(/^(description:|100a|200a)/gi,'').trim()}
 
 Be extremely specific. Examples of good line items:
 - "12/2 Romex NM-B wire" qty in feet, price per foot
