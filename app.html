@@ -750,7 +750,7 @@ function renderQuoteOutput() {
           </div>
           <div>
             <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:16px;">Contractor</div>
-            <div style="border-bottom:1px solid #333;padding:8px 0;font-size:14px;color:#888;margin-bottom:6px;font-style:italic;">${state.user?.name || 'Electrician'}</div>
+            <input type="text" value="${state.user?.name || ''}" placeholder="Your name" style="background:transparent;border:none;border-bottom:1px solid #333;border-radius:0;padding:8px 0;font-size:14px;color:#ccc;margin-bottom:6px;"/>
             <div style="font-size:11px;color:#444;margin-bottom:16px;">${state.user?.company || 'Your Company'}</div>
             <input type="text" placeholder="MM/DD/YYYY" style="background:transparent;border:none;border-bottom:1px solid #333;border-radius:0;padding:8px 0;font-size:14px;color:#ccc;max-width:150px;margin-bottom:6px;"/>
             <div style="font-size:11px;color:#444;">Date</div>
