@@ -442,7 +442,7 @@ const SUPABASE_URL = 'https://gtyhbxkabxzolzohkbnn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eWhieGthYnh6b2x6b2hrYm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjgyNjQsImV4cCI6MjA4OTEwNDI2NH0.6PULPUcDwjZRHOJQ2pNpptcsua-Yif83ivZyWVZmOuU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const DEMO_USER = { name: 'Demo User', email: 'demo@voltquote.io', company: 'My Electric LLC', phone: '(555) 123-4567', license: '', taxRate: '6', plan: 'PRO TRIAL' };
+const DEMO_USER = { name: 'Demo User', email: 'demo@voltquote.io', company: 'My Electric LLC', phone: '(555) 123-4567', license: '', taxRate: '6', markup: '20', plan: 'PRO TRIAL' };
 
 // ─────────────────────────────────────────────
 // STATE
@@ -676,18 +676,18 @@ function renderQuoteOutput() {
       <table>
         <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
         <tbody>
-          ${q.lineItems.map(item => `
+          ${q.lineItems.map((item, i) => `
           <tr>
             <td><div class="item-name">${item.name}</div><div class="item-desc">${item.description}</div></td>
-            <td style="color:var(--muted)">${item.qty} ${item.unit}</td>
-            <td style="color:var(--muted)">$${item.unitPrice.toFixed(2)}</td>
-            <td>$${item.total.toFixed(2)}</td>
+            <td><input type="number" value="${item.qty}" min="0" step="0.1" onchange="updateLineItem(${i},'qty',this.value)" style="width:60px;background:transparent;border:none;border-bottom:1px solid #333;color:#ccc;text-align:center;padding:2px;font-size:13px;" /></td>
+            <td><input type="number" value="${item.unitPrice.toFixed(2)}" min="0" step="0.01" onchange="updateLineItem(${i},'unitPrice',this.value)" style="width:80px;background:transparent;border:none;border-bottom:1px solid #333;color:#ccc;text-align:center;padding:2px;font-size:13px;" /></td>
+            <td style="color:var(--yellow);font-weight:600;">$${item.total.toFixed(2)}</td>
           </tr>`).join('')}
           <tr>
-            <td><div class="item-name">Labor</div><div class="item-desc">${q.laborHours} hrs @ $${q.laborRate}/hr</div></td>
-            <td style="color:var(--muted)">${q.laborHours} hrs</td>
-            <td style="color:var(--muted)">$${q.laborRate.toFixed(2)}</td>
-            <td>$${q.laborTotal.toFixed(2)}</td>
+            <td><div class="item-name">Labor</div><div class="item-desc">Journeyman electrician</div></td>
+            <td><input type="number" value="${q.laborHours}" min="0" step="0.5" onchange="updateLabor('hours',this.value)" style="width:60px;background:transparent;border:none;border-bottom:1px solid #333;color:#ccc;text-align:center;padding:2px;font-size:13px;" /></td>
+            <td><input type="number" value="${q.laborRate.toFixed(2)}" min="0" step="1" onchange="updateLabor('rate',this.value)" style="width:80px;background:transparent;border:none;border-bottom:1px solid #333;color:#ccc;text-align:center;padding:2px;font-size:13px;" /></td>
+            <td style="color:var(--yellow);font-weight:600;">$${q.laborTotal.toFixed(2)}</td>
           </tr>
         </tbody>
       </table>
@@ -730,13 +730,16 @@ function renderQuoteOutput() {
         </div>
         <div class="detail-box">
           <div class="detail-box-label">Warranty</div>
-          <div class="detail-box-val" style="font-size:15px;margin-top:4px;font-family:'DM Sans',sans-serif;font-weight:600;">${q.warrantyCoverage}</div>
+          <input type="text" value="${q.warrantyCoverage}" onchange="state.quote.warrantyCoverage=this.value" style="background:transparent;border:none;border-bottom:1px solid #333;border-radius:0;color:#ccc;font-size:14px;font-weight:600;padding:4px 0;width:100%;" />
         </div>
       </div>
 
       <div class="section-label">Notes & Conditions</div>
       <div class="notes-box">${q.notes}</div>
 
+      <div class="notes-box" style="margin-top:12px;font-size:11px;color:#444;line-height:1.8;border-color:rgba(255,100,100,0.1);">
+        ⚠ DISCLAIMER: This is an AI-generated estimate for reference only. The contractor is solely responsible for reviewing, verifying, and adjusting all pricing before submitting to any customer. Actual costs may vary based on site conditions, material availability, and local requirements. VoltQuote is not liable for any pricing errors or omissions.
+      </div>
       <div class="notes-box" style="margin-top:12px;font-size:12px;color:#555;line-height:1.8;">
         • Quote valid for ${q.validDays} days from date of issue due to material price fluctuations<br/>
         • Electrical permits are not included unless explicitly stated in scope of work<br/>
@@ -847,9 +850,19 @@ function renderSettingsPage() {
         <input type="number" id="set-tax" value="${state.user?.taxRate||'6'}" placeholder="6" style="max-width:100px;" />
       </div>
       <div class="form-group">
+        <label>Material Markup (%) <span style="color:#555;font-size:11px;">your profit margin on materials</span></label>
+        <input type="number" id="set-markup" value="${state.user?.markup||'20'}" placeholder="20" style="max-width:100px;" />
+      </div>
+      <div class="form-group">
         <label>Company Logo <span style="color:#555;font-size:11px;">(shows on quotes)</span></label>
-        <input type="file" id="set-logo" accept="image/*" style="padding:8px 0;background:transparent;border:none;color:#888;font-size:13px;" />
-        ${state.user?.logoUrl ? `<img src="${state.user.logoUrl}" style="height:40px;margin-top:8px;object-fit:contain;border-radius:4px;"/>` : ''}
+        ${state.user?.logoUrl
+          ? `<img src="${state.user.logoUrl}" style="height:60px;margin-top:8px;object-fit:contain;border-radius:4px;display:block;"/>`
+          : `<div style="background:#000;border:1px dashed #333;border-radius:10px;height:80px;display:flex;align-items:center;justify-content:center;margin-top:8px;cursor:pointer;" onclick="document.getElementById('set-logo').click()">
+              <span style="color:#444;font-size:13px;letter-spacing:1px;">COMPANY LOGO</span>
+            </div>`
+        }
+        <input type="file" id="set-logo" accept="image/*" style="display:none;" />
+        <div style="font-size:11px;color:#444;margin-top:8px;">Click box to upload your logo</div>
       </div>
       <button class="btn btn-yellow btn-sm" id="save-settings">Save Changes</button>
     </div>
@@ -971,6 +984,7 @@ function attachEvents() {
     state.user.phone = document.getElementById('set-phone').value;
     state.user.license = document.getElementById('set-license').value;
     state.user.taxRate = document.getElementById('set-tax').value;
+    state.user.markup = document.getElementById('set-markup').value;
     // Handle logo upload
     const logoFile = document.getElementById('set-logo')?.files[0];
     if (logoFile) {
@@ -1070,46 +1084,58 @@ async function generateQuote() {
   state.quote = null;
   render();
 
-  const prompt = `You are an expert electrical contractor estimator with 20+ years of experience. Generate a hyper-detailed electrical job quote with every single material broken down individually — wire by the foot, each breaker, every connector, box, screw, and fitting. The electrician should be able to print this and walk straight into Home Depot or an electrical supply house and buy exactly what they need without thinking.
+  const markup = parseFloat(state.user?.markup || 20);
+  const taxRate = parseFloat(state.user?.taxRate || 6);
+  const prompt = `You are a licensed master electrician and expert estimator with 25+ years of field experience across residential and commercial work. Generate the most accurate, detailed electrical estimate possible — one that a real electrician could actually use to buy materials and win the job.
+
+CRITICAL ACCURACY RULES:
+- Use REAL 2025-2026 market prices from electrical supply houses (Platt, Graybar, Home Depot Pro)
+- Account for the specific LOCATION when pricing labor: ${f.location || 'US average'}
+  * Michigan/Midwest labor: $75-95/hr journeyman
+  * Northeast (NY/NJ/MA): $110-140/hr
+  * Southeast: $65-85/hr
+  * West Coast (CA/WA/OR): $95-125/hr
+  * Use regional permit costs — Michigan permits typically $150-400
+- Break down EVERY material individually — wire by the foot, each breaker, every connector
+- Include ALL hidden costs: wire nuts, tape, staples, connectors, boxes, screws, permit fees
+- Apply a ${markup}% contractor markup on materials (standard industry practice)
+- Labor rate should match the location above
 
 Job Type: ${f.jobType}
 Location: ${f.location || 'Not specified'}
 ${f.sqft ? `Square Footage: ${f.sqft} sq ft` : ''}
-${f.amps ? `Existing Panel: ${f.amps}A` : ''}
+${f.amps ? `Existing Panel: ${f.amps}` : ''}
 Job Description: ${f.description.replace(/^(description:|100a|200a)/gi,'').trim()}
 
-Be extremely specific. Examples of good line items:
-- "12/2 Romex NM-B wire" qty in feet, price per foot
-- "20A Square D QO120 single pole breaker" qty and unit price
-- "1/2 inch EMT conduit" qty in feet
-- "Red wire nuts 10-pack" qty and price
-- "4-inch square steel electrical box" qty and price  
-- "20A tamper resistant GFCI outlet" qty and price
-- "8ft copper clad ground rod" qty and price
-- "4/0 aluminum SEU service entrance cable" qty in feet
-- "200A main breaker panel 40-space Square D QO" qty and price
-Include labor as a separate line item.
+REQUIRED line item examples for accuracy:
+- "12/2 Romex NM-B wire" — price per foot x actual footage needed
+- "20A Square D QO120 breaker" — exact model, real price
+- "200A Square D QO140L200PG main panel" — exact model if panel upgrade
+- "4/0 aluminum SEU service entrance cable" — per foot
+- "Lapeer County electrical permit" — real local permit cost
+- "Wire nuts, tape, staples (misc)" — realistic hardware total
+- Separate line for EACH circuit or major component
 
-Return ONLY a JSON object — no markdown, no backticks, no preamble:
+Return ONLY valid JSON — no markdown, no backticks, no explanation:
 {
-  "scopeOfWork": "2-3 sentence summary of exactly what work will be performed",
+  "scopeOfWork": "3-4 sentence professional summary of exactly what work will be performed and why",
   "lineItems": [
-    { "name": "12/2 Romex NM-B wire", "description": "General purpose branch circuit wiring", "qty": 50, "unit": "ft", "unitPrice": 0.65, "total": 32.50 }
+    { "name": "200A Square D QO140L200PG Main Panel", "description": "40-space 200A load center with main breaker", "qty": 1, "unit": "ea", "unitPrice": 285, "total": 285 }
   ],
   "laborHours": 8,
-  "laborRate": 95,
-  "laborTotal": 760,
-  "materialTotal": 450,
-  "subtotal": 1210,
-  "tax": 36.30,
-  "grandTotal": 1246.30,
+  "laborRate": 85,
+  "laborTotal": 680,
+  "materialTotal": 850,
+  "subtotal": 1530,
+  "tax": 91.80,
+  "grandTotal": 1621.80,
   "validDays": 30,
-  "estimatedDuration": "1 day",
-  "notes": "2-3 important notes about the job, permits needed, or conditions",
-  "warrantyCoverage": "1 year parts and labor"
+  "estimatedDuration": "1-2 days",
+  "notes": "Include: permit requirements, utility coordination needed, access requirements, warranty info, and any conditions that could affect price",
+  "warrantyCoverage": "1 year parts and labor on all installed components"
 }
 
-Use realistic 2025-2026 pricing. Include 8-15 line items minimum. Use exact product names a supply house would recognize.`;
+Minimum 10 line items. Use exact SKU-level product names. Be conservative on labor hours — underestimating loses money.`;
 
   try {
     const controller = new AbortController();
@@ -1267,6 +1293,30 @@ function renderUpgradeModal() {
       <button class="btn btn-outline" style="width:100%;" onclick="state.showUpgradeModal=false;render();">Maybe Later</button>
     </div>
   </div>`;
+}
+
+function updateLineItem(index, field, value) {
+  if (!state.quote || !state.quote.lineItems[index]) return;
+  state.quote.lineItems[index][field] = parseFloat(value) || 0;
+  state.quote.lineItems[index].total = state.quote.lineItems[index].qty * state.quote.lineItems[index].unitPrice;
+  // Recalculate totals
+  const matTotal = state.quote.lineItems.reduce((s,i) => s + i.total, 0);
+  state.quote.materialTotal = matTotal;
+  state.quote.subtotal = matTotal + state.quote.laborTotal;
+  state.quote.tax = state.quote.subtotal * (parseFloat(state.user?.taxRate || 6) / 100);
+  state.quote.grandTotal = state.quote.subtotal + state.quote.tax;
+  render();
+}
+
+function updateLabor(field, value) {
+  if (!state.quote) return;
+  if (field === 'hours') state.quote.laborHours = parseFloat(value) || 0;
+  if (field === 'rate') state.quote.laborRate = parseFloat(value) || 0;
+  state.quote.laborTotal = state.quote.laborHours * state.quote.laborRate;
+  state.quote.subtotal = state.quote.materialTotal + state.quote.laborTotal;
+  state.quote.tax = state.quote.subtotal * (parseFloat(state.user?.taxRate || 6) / 100);
+  state.quote.grandTotal = state.quote.subtotal + state.quote.tax;
+  render();
 }
 
 function exportToExcel() {
