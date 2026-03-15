@@ -443,6 +443,8 @@ let state = {
   loading: false,
   quote: null,
   savedQuotes: JSON.parse(localStorage.getItem('vq_quotes') || '[]'),
+  quoteCount: parseInt(localStorage.getItem('vq_quote_count') || '0'),
+  showUpgradeModal: false,
   toast: null,
   showEmailModal: false,
   emailTo: '',
@@ -546,6 +548,7 @@ function renderApp() {
       <div class="sidebar-user">
         <div class="user-name">${state.user?.company || 'My Company'}</div>
         <div class="user-plan">${state.user?.plan || 'FREE'}</div>
+        ${(state.user?.plan !== 'PRO' && state.user?.plan !== 'PRO TRIAL') ? `<div style="font-size:10px;color:#444;margin-top:2px;">${state.quoteCount}/5 free quotes used</div>` : ''}
       </div>
     </div>
     <div class="main">
@@ -555,6 +558,7 @@ function renderApp() {
     </div>
   </div>
   ${state.showEmailModal ? renderEmailModal() : ''}
+  ${state.showUpgradeModal ? renderUpgradeModal() : ''}
   <nav class="mobile-nav">
     <button class="mobile-nav-btn ${state.page==='quote'?'active':''}" data-page="quote">
       <span class="mobile-nav-btn-icon">⚡</span>New Quote
@@ -639,6 +643,7 @@ function renderQuoteOutput() {
   <div class="quote-card" id="quote-output">
     <div class="quote-head">
       <div>
+        ${state.user?.logoUrl ? `<img src="${state.user.logoUrl}" style="height:50px;object-fit:contain;margin-bottom:8px;display:block;"/>` : ''}
         <div class="quote-company-name">${state.user?.company || f.company || 'Your Company'}</div>
         <div style="font-size:13px;color:var(--muted);margin-top:3px;">${state.user?.phone || ''}</div>
         <div style="font-size:13px;color:var(--muted);">${state.user?.email || ''}</div>
@@ -829,6 +834,11 @@ function renderSettingsPage() {
         <label>Sales Tax Rate (%)</label>
         <input type="number" id="set-tax" value="${state.user?.taxRate||'6'}" placeholder="6" style="max-width:100px;" />
       </div>
+      <div class="form-group">
+        <label>Company Logo <span style="color:#555;font-size:11px;">(shows on quotes)</span></label>
+        <input type="file" id="set-logo" accept="image/*" style="padding:8px 0;background:transparent;border:none;color:#888;font-size:13px;" />
+        ${state.user?.logoUrl ? `<img src="${state.user.logoUrl}" style="height:40px;margin-top:8px;object-fit:contain;border-radius:4px;"/>` : ''}
+      </div>
       <button class="btn btn-yellow btn-sm" id="save-settings">Save Changes</button>
     </div>
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;">
@@ -840,6 +850,7 @@ function renderSettingsPage() {
         </div>
         <button class="btn btn-yellow btn-sm">Upgrade to Pro</button>
       </div>
+      <a href="mailto:support@voltquote.net" class="btn btn-outline btn-sm" style="display:block;text-align:center;text-decoration:none;margin-bottom:12px;">📧 Priority Support</a>
       <button class="btn btn-outline btn-sm" id="logout-btn" style="color:#ff6060;border-color:rgba(255,96,96,0.2);">Log Out</button>
     </div>
   </div>`;
@@ -948,6 +959,19 @@ function attachEvents() {
     state.user.phone = document.getElementById('set-phone').value;
     state.user.license = document.getElementById('set-license').value;
     state.user.taxRate = document.getElementById('set-tax').value;
+    // Handle logo upload
+    const logoFile = document.getElementById('set-logo')?.files[0];
+    if (logoFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        state.user.logoUrl = e.target.result;
+        localStorage.setItem('vq_user', JSON.stringify(state.user));
+        showToast('✓ Settings saved');
+        render();
+      };
+      reader.readAsDataURL(logoFile);
+      return;
+    }
     localStorage.setItem('vq_user', JSON.stringify(state.user));
     showToast('✓ Settings saved');
     render();
@@ -976,6 +1000,13 @@ async function generateQuote() {
   const f = state.form;
   if (!f.jobType || !f.description) {
     showToast('⚠ Please fill in Job Type and Description');
+    return;
+  }
+  // Quote limit for free plan
+  const isPro = state.user?.plan === 'PRO' || state.user?.plan === 'PRO TRIAL';
+  if (!isPro && state.quoteCount >= 5) {
+    state.showUpgradeModal = true;
+    render();
     return;
   }
   state.loading = true;
@@ -1054,6 +1085,8 @@ Use realistic 2025-2026 pricing. Include 8-15 line items minimum. Use exact prod
     const clean = text.replace(/```json|```/g,'').trim();
     try {
       state.quote = JSON.parse(clean);
+      state.quoteCount++;
+      localStorage.setItem('vq_quote_count', state.quoteCount);
     } catch(parseErr) {
       showToast('⚠ Could not parse quote. Please try again.');
     }
@@ -1149,6 +1182,30 @@ function showToast(msg) {
 
 // ── START ──
 render();
+
+function renderUpgradeModal() {
+  return `
+  <div class="modal-overlay" id="upgrade-overlay">
+    <div class="modal" style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;">⚡</div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;">FREE LIMIT REACHED</h3>
+      <p style="color:var(--muted);margin:12px 0 24px;">You've used all 5 free quotes this month. Upgrade to Pro for unlimited quotes.</p>
+      <div style="background:#0e1014;border:1px solid rgba(245,197,0,0.2);border-radius:12px;padding:24px;margin-bottom:24px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--yellow);">$49<span style="font-size:20px;color:#888;">/mo</span></div>
+        <div style="font-size:13px;color:#555;margin-top:4px;">Pro Plan</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;text-align:left;">
+          <div style="font-size:13px;color:#888;">✓ Unlimited AI quotes</div>
+          <div style="font-size:13px;color:#888;">✓ Excel export</div>
+          <div style="font-size:13px;color:#888;">✓ Email to customers</div>
+          <div style="font-size:13px;color:#888;">✓ Payment schedule</div>
+          <div style="font-size:13px;color:#888;">✓ Signature lines</div>
+        </div>
+      </div>
+      <button class="btn btn-yellow" style="width:100%;margin-bottom:12px;" onclick="window.location='https://voltquote.net/#pricing'">Upgrade to Pro — $49/mo</button>
+      <button class="btn btn-outline" style="width:100%;" onclick="state.showUpgradeModal=false;render();">Maybe Later</button>
+    </div>
+  </div>`;
+}
 
 function exportToExcel() {
   if (!state.quote) return;
