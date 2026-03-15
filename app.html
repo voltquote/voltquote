@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/webp" href="logo.webp"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <title>VoltQuote — App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -423,13 +425,20 @@
 // CONFIG — Replace these with your real keys
 // ─────────────────────────────────────────────
 const ANTHROPIC_API_KEY  = 'YOUR_ANTHROPIC_API_KEY';  // Add in Vercel env vars
+const SUPABASE_URL = 'https://gtyhbxkabxzolzohkbnn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eWhieGthYnh6b2x6b2hrYm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjgyNjQsImV4cCI6MjA4OTEwNDI2NH0.6PULPUcDwjZRHOJQ2pNpptcsua-Yif83ivZyWVZmOuU';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID'; // Get from emailjs.com
 const EMAILJS_TEMPLATE   = 'YOUR_EMAILJS_TEMPLATE_ID';
 const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
 
 // ─────────────────────────────────────────────
-// SIMPLE IN-MEMORY "AUTH" (replace with Supabase)
+// SUPABASE
 // ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://gtyhbxkabxzolzohkbnn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eWhieGthYnh6b2x6b2hrYm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjgyNjQsImV4cCI6MjA4OTEwNDI2NH0.6PULPUcDwjZRHOJQ2pNpptcsua-Yif83ivZyWVZmOuU';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const DEMO_USER = { name: 'Demo User', email: 'demo@voltquote.io', company: 'My Electric LLC', phone: '(555) 123-4567', license: '', taxRate: '6', plan: 'PRO TRIAL' };
 
 // ─────────────────────────────────────────────
@@ -973,6 +982,9 @@ function attachEvents() {
       return;
     }
     localStorage.setItem('vq_user', JSON.stringify(state.user));
+    if (state.user?.id) {
+      sb.from('users').update({ company: state.user.company, name: state.user.name, phone: state.user.phone, license: state.user.license, tax_rate: state.user.taxRate }).eq('id', state.user.id);
+    }
     showToast('✓ Settings saved');
     render();
   });
@@ -985,14 +997,56 @@ function login(demo) {
   if (demo) {
     const saved = localStorage.getItem('vq_user');
     state.user = saved ? JSON.parse(saved) : { ...DEMO_USER };
-    state.form.company = DEMO_USER.company;
-  } else {
-    const email = document.getElementById('auth-email')?.value;
-    const company = document.getElementById('auth-company')?.value;
-    state.user = { name: 'User', email: email||'user@example.com', company: company||'My Electric LLC', plan: 'FREE' };
-    state.form.company = state.user.company;
+    state.form.company = state.user.company || 'My Electric LLC';
+    state.page = 'quote';
+    render();
+    return;
   }
+  // Real Supabase auth
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const password = document.getElementById('auth-pass')?.value;
+  const company = document.getElementById('auth-company')?.value?.trim();
+  if (!email || !password) { showToast('⚠ Enter email and password'); return; }
+  if (state.authMode === 'signup') {
+    signUp(email, password, company);
+  } else {
+    signIn(email, password);
+  }
+}
+
+async function signUp(email, password, company) {
+  showToast('Creating account...');
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if (error) { showToast('⚠ ' + error.message); return; }
+  // Save user profile to DB
+  await sb.from('users').insert({ 
+    id: data.user.id, email, company: company||'My Electric LLC',
+    name: '', phone: '', license: '', tax_rate: '6', plan: 'free', quote_count: 0
+  });
+  state.user = { id: data.user.id, email, company: company||'My Electric LLC', name: '', phone: '', license: '', taxRate: '6', plan: 'FREE', quote_count: 0 };
+  state.form.company = state.user.company;
+  localStorage.setItem('vq_user', JSON.stringify(state.user));
   state.page = 'quote';
+  showToast('✅ Account created! Welcome to VoltQuote');
+  render();
+}
+
+async function signIn(email, password) {
+  showToast('Logging in...');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { showToast('⚠ ' + error.message); return; }
+  // Load user profile from DB
+  const { data: profile } = await sb.from('users').select('*').eq('id', data.user.id).single();
+  if (profile) {
+    state.user = { id: profile.id, email: profile.email, company: profile.company, name: profile.name, phone: profile.phone, license: profile.license, taxRate: profile.tax_rate, plan: profile.plan.toUpperCase(), quote_count: profile.quote_count };
+    state.quoteCount = profile.quote_count || 0;
+  } else {
+    state.user = { id: data.user.id, email, company: 'My Electric LLC', name: '', phone: '', license: '', taxRate: '6', plan: 'FREE' };
+  }
+  state.form.company = state.user.company;
+  localStorage.setItem('vq_user', JSON.stringify(state.user));
+  state.page = 'quote';
+  showToast('✅ Welcome back!');
   render();
 }
 
@@ -1087,6 +1141,11 @@ Use realistic 2025-2026 pricing. Include 8-15 line items minimum. Use exact prod
       state.quote = JSON.parse(clean);
       state.quoteCount++;
       localStorage.setItem('vq_quote_count', state.quoteCount);
+      // Sync to Supabase if logged in
+      if (state.user?.supabaseId) {
+        supabase.from('users').update({ quote_count: state.quoteCount }).eq('id', state.user.supabaseId).then(() => {});
+      }
+      if (state.user?.id) { sb.from('users').update({ quote_count: state.quoteCount }).eq('id', state.user.id); }
     } catch(parseErr) {
       showToast('⚠ Could not parse quote. Please try again.');
     }
