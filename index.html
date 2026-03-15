@@ -1312,46 +1312,4 @@
       <div>
         <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-bottom: 16px;">Product</div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <a href="#how" style="font-size: 14px; color: #555; text-decoration: none;">How It Works</a>
-          <a href="#features" style="font-size: 14px; color: #555; text-decoration: none;">Features</a>
-          <a href="#pricing" style="font-size: 14px; color: #555; text-decoration: none;">Pricing</a>
-          <a href="app.html" style="font-size: 14px; color: #555; text-decoration: none;">Get Started</a>
-        </div>
-      </div>
-      <div>
-        <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-bottom: 16px;">Legal</div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <a href="#" style="font-size: 14px; color: #555; text-decoration: none;">Privacy Policy</a>
-          <a href="#" style="font-size: 14px; color: #555; text-decoration: none;">Terms of Service</a>
-          <a href="#" style="font-size: 14px; color: #555; text-decoration: none;">Contact</a>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="width: 100%; max-width: 1100px; margin: 0 auto; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-    <div class="footer-copy">© 2026 VoltQuote. All rights reserved.</div>
-    <div style="font-size: 13px; color: #2a2a2a;">Built for electricians, by someone who gets it.</div>
-  </div>
-</footer>
-
-<script>
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 80);
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => observer.observe(el));
-
-  // Nav scroll effect
-  window.addEventListener('scroll', () => {
-    document.querySelector('nav').style.borderBottomColor =
-      window.scrollY > 20 ? 'rgba(245,197,0,0.15)' : 'rgba(255,255,255,0.07)';
-  });
-</script>
-</body>
-</html>
+          <a href="#how" style="font-size: 14px;
