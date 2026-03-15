@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/webp" href="logo.webp"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <title>VoltQuote — App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -424,11 +423,8 @@
 // ─────────────────────────────────────────────
 // CONFIG — Replace these with your real keys
 // ─────────────────────────────────────────────
-const ANTHROPIC_API_KEY  = 'YOUR_ANTHROPIC_API_KEY';  // Add in Vercel env vars
-const SUPABASE_URL = 'https://gtyhbxkabxzolzohkbnn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eWhieGthYnh6b2x6b2hrYm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjgyNjQsImV4cCI6MjA4OTEwNDI2NH0.6PULPUcDwjZRHOJQ2pNpptcsua-Yif83ivZyWVZmOuU';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID'; // Get from emailjs.com
+const ANTHROPIC_API_KEY  = 'YOUR_ANTHROPIC_API_KEY';
+const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';
 const EMAILJS_TEMPLATE   = 'YOUR_EMAILJS_TEMPLATE_ID';
 const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
 
@@ -437,7 +433,7 @@ const EMAILJS_PUBLIC_KEY = 'YOUR_EMAILJS_PUBLIC_KEY';
 // ─────────────────────────────────────────────
 const SUPABASE_URL = 'https://gtyhbxkabxzolzohkbnn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eWhieGthYnh6b2x6b2hrYm5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MjgyNjQsImV4cCI6MjA4OTEwNDI2NH0.6PULPUcDwjZRHOJQ2pNpptcsua-Yif83ivZyWVZmOuU';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const DEMO_USER = { name: 'Demo User', email: 'demo@voltquote.io', company: 'My Electric LLC', phone: '(555) 123-4567', license: '', taxRate: '6', plan: 'PRO TRIAL' };
 
