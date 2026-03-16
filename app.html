@@ -1086,7 +1086,7 @@ async function generateQuote() {
 
   const markup = parseFloat(state.user?.markup || 20);
   const taxRate = parseFloat(state.user?.taxRate || 6);
-  const prompt = `You are a licensed master electrician and expert estimator with 25+ years of field experience across residential and commercial work. Generate the most accurate, detailed electrical estimate possible — one that a real electrician could actually use to buy materials and win the job.
+  const prompt = `You are a licensed master electrician and expert estimator with 25+ years of field experience. Before generating this estimate, use web search to look up CURRENT 2025-2026 prices for the specific materials needed for this job. Search for prices on Home Depot, Platt Electric, or Graybar for the most common items. Generate the most accurate, detailed electrical estimate possible using real current market prices.
 
 CRITICAL ACCURACY RULES:
 - Use REAL 2025-2026 market prices from electrical supply houses (Platt, Graybar, Home Depot Pro)
